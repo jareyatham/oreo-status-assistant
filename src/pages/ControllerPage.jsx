@@ -10,11 +10,14 @@ import ChatBox from "../components/ChatBox";
 import { clearChat } from "../lib/chatStore";
 import ReactionFeed from "../components/ReactionFeed";
 import { clearReactions } from "../lib/reactionStore";
+import { PawPrint, Plus, Upload, Search, X } from "lucide-react";
+import ThemeToggle from "../components/ThemeToggle";
+import { APP_VERSION } from "../constants/version";
 
 const MOOD_OPTIONS = [
-  { value: "auto", label: "อัตโนมัติ" },
-  { value: "cute", label: "น่ารัก" },
-  { value: "professional", label: "ทางการ" },
+  { value: "auto", label: "Auto" },
+  { value: "cute", label: "Cute" },
+  { value: "professional", label: "Professional" },
 ];
 
 const MAX_IMAGE_BYTES = 400 * 1024; // ไฟล์ต้นฉบับไม่เกิน ~400KB
@@ -129,7 +132,12 @@ export default function ControllerPage() {
 
   return (
     <div className="min-h-dvh bg-bg flex flex-col items-center px-6 py-10 gap-6">
-      <h1 className="text-lg font-semibold text-ink">🐶 Oreo Controller</h1>
+      <ThemeToggle />
+
+      <h1 className="text-lg font-semibold text-ink flex items-center gap-2">
+        <PawPrint className="w-5 h-5 text-primary" />
+        Oreo Controller
+      </h1>
 
       <Mascot
         status={status}
@@ -141,14 +149,16 @@ export default function ControllerPage() {
 
       {/* Status selector */}
       <div className="w-full max-w-sm flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-ink/70">สถานะ</label>
+        <label className="text-sm font-medium text-ink/70">Status</label>
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
             <button
               key={key}
               onClick={() => setStatus(key)}
               className={`min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-medium transition btn-press ${
-                status === key ? "bg-primary text-white" : "glass-card text-ink/70"
+                status === key
+                  ? "bg-primary text-white"
+                  : "glass-card text-ink/70"
               }`}
             >
               {cfg.emoji} {cfg.label}
@@ -156,11 +166,13 @@ export default function ControllerPage() {
           ))}
           <button
             onClick={() => setStatus("custom")}
-            className={`min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-medium transition btn-press ${
-              status === "custom" ? "bg-primary text-white" : "glass-card text-ink/70"
+            className={`min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-medium transition btn-press flex items-center justify-center gap-1 ${
+              status === "custom"
+                ? "bg-primary text-white"
+                : "glass-card text-ink/70"
             }`}
           >
-            ➕ กำหนดเอง
+            <Plus className="w-4 h-4" /> Custom
           </button>
         </div>
 
@@ -170,7 +182,7 @@ export default function ControllerPage() {
               type="text"
               value={customStatus}
               onChange={(e) => setCustomStatus(e.target.value)}
-              placeholder="พิมพ์สถานะเอง เช่น ออกกำลังกาย"
+              placeholder="Enter a custom status, e.g. Playing a game"
               className="mt-2 glass-card px-4 py-2.5 text-ink outline-none focus:ring-2 focus:ring-primary/50"
             />
 
@@ -180,7 +192,9 @@ export default function ControllerPage() {
                   key={emo}
                   onClick={() => setCustomEmoji(emo)}
                   className={`min-w-[44px] min-h-[44px] rounded-full text-lg flex items-center justify-center transition ${
-                    customEmoji === emo ? "bg-primary/20 ring-2 ring-primary" : "glass-card"
+                    customEmoji === emo
+                      ? "bg-primary/20 ring-2 ring-primary"
+                      : "glass-card"
                   }`}
                 >
                   {emo}
@@ -190,26 +204,32 @@ export default function ControllerPage() {
 
             {/* เลือกรูป: อัปโหลดไฟล์ หรือ ค้นหา GIF */}
             <div className="mt-3 flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-ink/70">รูป Mascot (ไม่บังคับ)</label>
+              <label className="text-sm font-medium text-ink/70">
+                Mascot image (optional)
+              </label>
 
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setImageMode("upload")}
-                  className={`flex-1 min-h-[40px] rounded-xl text-sm font-medium transition ${
-                    imageMode === "upload" ? "bg-accent text-white" : "glass-card text-ink/70"
+                  className={`flex-1 min-h-[40px] rounded-xl text-sm font-medium transition flex items-center justify-center gap-1.5 ${
+                    imageMode === "upload"
+                      ? "bg-accent text-white"
+                      : "glass-card text-ink/70"
                   }`}
                 >
-                  📁 อัปโหลดไฟล์
+                  <Upload className="w-4 h-4" /> Upload file
                 </button>
                 <button
                   type="button"
                   onClick={() => setImageMode("gif")}
-                  className={`flex-1 min-h-[40px] rounded-xl text-sm font-medium transition ${
-                    imageMode === "gif" ? "bg-accent text-white" : "glass-card text-ink/70"
+                  className={`flex-1 min-h-[40px] rounded-xl text-sm font-medium transition flex items-center justify-center gap-1.5 ${
+                    imageMode === "gif"
+                      ? "bg-accent text-white"
+                      : "glass-card text-ink/70"
                   }`}
                 >
-                  🔍 ค้นหา GIF
+                  <Search className="w-4 h-4" /> Search GIF
                 </button>
               </div>
 
@@ -226,11 +246,13 @@ export default function ControllerPage() {
                     type="text"
                     value={gifQuery}
                     onChange={(e) => setGifQuery(e.target.value)}
-                    placeholder="พิมพ์คำค้นหา เช่น cute dog, happy"
+                    placeholder="Search GIFs, e.g. cute dog, happy"
                     className="glass-card px-4 py-2.5 text-ink outline-none focus:ring-2 focus:ring-primary/50"
                   />
 
-                  {searchingGif && <p className="text-xs text-ink/40">กำลังค้นหา...</p>}
+                  {searchingGif && (
+                    <p className="text-xs text-ink/40">Searching...</p>
+                  )}
 
                   {gifResults.length > 0 && (
                     <div className="grid grid-cols-3 gap-2 max-h-56 overflow-y-auto p-1">
@@ -240,7 +262,9 @@ export default function ControllerPage() {
                           type="button"
                           onClick={() => setCustomImageBase64(gif.fullUrl)}
                           className={`rounded-xl overflow-hidden aspect-square glass-card transition ${
-                            customImageBase64 === gif.fullUrl ? "ring-2 ring-primary" : ""
+                            customImageBase64 === gif.fullUrl
+                              ? "ring-2 ring-primary"
+                              : ""
                           }`}
                         >
                           <img
@@ -259,7 +283,7 @@ export default function ControllerPage() {
                 <div className="flex items-center gap-3 mt-1">
                   <img
                     src={customImageBase64}
-                    alt="ตัวอย่างรูป"
+                    alt="Image Preview"
                     className="w-14 h-14 rounded-xl object-cover glass-card"
                   />
                   <button
@@ -267,13 +291,13 @@ export default function ControllerPage() {
                     onClick={() => setCustomImageBase64("")}
                     className="text-xs text-accent underline"
                   >
-                    ลบรูปนี้
+                    Remove image
                   </button>
                 </div>
               )}
 
               <p className="text-xs text-ink/40">
-                อัปโหลดไฟล์รูปภาพเอง (ไม่เกิน 400KB) หรือค้นหา GIF จาก Giphy แล้วกดเลือกได้เลย
+                Upload an image (max 400KB) or search Giphy and pick one
               </p>
             </div>
           </>
@@ -287,14 +311,16 @@ export default function ControllerPage() {
 
       {/* Mood selector */}
       <div className="w-full max-w-sm flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-ink/70">โทนข้อความ</label>
+        <label className="text-sm font-medium text-ink/70">Message tone</label>
         <div className="flex gap-2">
           {MOOD_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setMood(opt.value)}
               className={`min-h-[44px] flex-1 px-3 py-2 rounded-xl text-sm font-medium transition btn-press ${
-                mood === opt.value ? "bg-accent text-white" : "glass-card text-ink/70"
+                mood === opt.value
+                  ? "bg-accent text-white"
+                  : "glass-card text-ink/70"
               }`}
             >
               {opt.label}
@@ -303,7 +329,8 @@ export default function ControllerPage() {
         </div>
         {mood === "auto" && (
           <p className="text-xs text-accent/70 -mt-1">
-            ตอนนี้ auto เลือกโทน: {resolveAutoMood() === "cute" ? "น่ารัก 🐶" : "ทางการ 💼"}
+            Auto mode is currently using:{" "}
+            {resolveAutoMood() === "cute" ? "Cute  🐶" : "Professional 💼"}
           </p>
         )}
       </div>
@@ -326,12 +353,16 @@ export default function ControllerPage() {
         disabled={saving}
         className="w-full max-w-sm min-h-[52px] bg-primary text-white font-semibold py-3 rounded-2xl shadow-sm btn-press transition disabled:opacity-50"
       >
-        {saving ? "กำลังอัปเดต..." : "อัปเดตสถานะ"}
+        {saving ? "Updating..." : "Update status"}
       </button>
 
       {savedAt && (
-        <p className="text-xs text-ink/40">บันทึกล่าสุด {savedAt.toLocaleTimeString("th-TH")}</p>
+        <p className="text-xs text-ink/40">
+          Last saved at {savedAt.toLocaleTimeString("en-US")}
+        </p>
       )}
+
+      <p className="text-[10px] text-ink/25">{APP_VERSION}</p>
     </div>
   );
 }

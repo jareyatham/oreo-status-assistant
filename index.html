@@ -2,15 +2,23 @@
 <html lang="th">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
     />
     <meta name="theme-color" content="#F4FAF3" />
-    <meta name="description" content="Oreo Status Assistant — เช็คว่าเจ้าของว่างไหม" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#0b0f14" />
-    <title>🐶 Oreo Status</title>
+    <meta name="description" content="Oreo Status Assistant — check if the owner is available" />
+    <title>Oreo Status</title>
+    <script>
+      (function () {
+        var saved = localStorage.getItem("oreo-theme");
+        var isDark =
+          saved === "dark" ||
+          (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (isDark) document.documentElement.classList.add("dark");
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

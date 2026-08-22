@@ -8,5 +8,5 @@ export const STATUS_CONFIG = {
 
 export const EMOJI_CHOICES = ["🏃", "🍜", "📚", "🎮", "🧘", "🛒", "☕", "🎬","💀","🤐"];
 
-export const REACTION_EMOJIS = ["❤️", "😆", "🥹", "😮", "🔥"];
+export const REACTION_EMOJIS = ["❤️", "😆", "🥹", "🫡", "🔥"];
 

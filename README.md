@@ -1,6 +1,7 @@
+<<<<<<< HEAD
 # 🐶 Oreo Status Assistant
 
-เว็บแอปส่วนตัวสำหรับอัปเดตสถานะ real-time ให้คนอื่น (เช่นแฟน) เช็คได้ว่าตอนนี้ว่างไหม
+เว็บแอปส่วนตัวสำหรับอัปเดตสถานะ real-time ให้คนอื่น (เช่นแม่) เช็คได้ว่าตอนนี้ว่างไหม
 โดยไม่ต้องส่งข้อความเองทุกครั้ง
 
 ## Tech Stack
@@ -109,3 +110,6 @@ gifsicle -O3 --lossy=80 --colors 128 input.gif -o public/mascot/meeting.gif
 ## License
 
 Personal project — ใช้และแก้ไขได้ตามต้องการ
+=======
+# oreo-status-assistant
+>>>>>>> 016575ba82d9a85f7b32dc84725734bdbd73a169

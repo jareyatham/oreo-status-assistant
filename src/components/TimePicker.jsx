@@ -2,7 +2,6 @@ const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 
 export default function TimePicker({ value, onChange }) {
-  // value เป็น string "HH:mm" เช่น "14:30" หรือ "" ถ้ายังไม่ได้เลือก
   const [hour = "", minute = ""] = value ? value.split(":") : [];
 
   function handleHourChange(newHour) {
@@ -15,7 +14,7 @@ export default function TimePicker({ value, onChange }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-ink/70">เวลาที่คาดว่าจะว่าง</label>
+      <label className="text-sm font-medium text-ink/70">Expected free time</label>
       <div className="flex items-center gap-2">
         <select
           value={hour}
@@ -23,7 +22,7 @@ export default function TimePicker({ value, onChange }) {
           className="glass-card px-3 py-2.5 text-ink outline-none focus:ring-2 focus:ring-primary/50 flex-1"
         >
           <option value="" disabled>
-            ชม.
+            Hour
           </option>
           {HOURS.map((h) => (
             <option key={h} value={h}>
@@ -40,7 +39,7 @@ export default function TimePicker({ value, onChange }) {
           className="glass-card px-3 py-2.5 text-ink outline-none focus:ring-2 focus:ring-primary/50 flex-1"
         >
           <option value="" disabled>
-            นาที
+            Minute
           </option>
           {MINUTES.map((m) => (
             <option key={m} value={m}>

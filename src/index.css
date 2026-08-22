@@ -104,3 +104,55 @@ select {
     transform: translateY(-70px) scale(1.4);
   }
 }
+
+/* Dark mode overrides */
+.dark body {
+  @apply bg-[#12181a] text-[#E8EEEC];
+}
+
+.dark .glass-card {
+  @apply bg-white/[0.06] border-white/10;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 8px 24px rgba(0, 0, 0, 0.25);
+}
+@media (hover: hover) {
+  .dark .glass-card:hover {
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.25),
+      0 12px 32px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.dark .bg-app-gradient {
+  background: radial-gradient(circle at 50% 0%, #1c2624 0%, #12181a 55%, #12181a 100%);
+}
+
+.dark .bg-bg {
+  background-color: #12181a;
+}
+
+.dark .text-ink {
+  color: #e8eeec;
+}
+.dark .text-ink\/70 {
+  color: rgb(232 238 236 / 0.7);
+}
+.dark .text-ink\/50 {
+  color: rgb(232 238 236 / 0.5);
+}
+.dark .text-ink\/40 {
+  color: rgb(232 238 236 / 0.4);
+}
+.dark .text-ink\/35 {
+  color: rgb(232 238 236 / 0.35);
+}
+.dark .text-ink\/30 {
+  color: rgb(232 238 236 / 0.3);
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  color: #e8eeec;
+}

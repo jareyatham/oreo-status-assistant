@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { subscribeChatMessages, sendChatMessage } from "../lib/chatStore";
 import { searchGifs } from "../lib/giphy";
+import { MessageCircle, Image as ImageIcon, Film, Send, X } from "lucide-react";
 
 const SEND_COOLDOWN_MS = 3000; // กันสแปม ส่งได้ทุก 3 วิ
 const MAX_TEXT_LENGTH = 200;
@@ -9,7 +10,10 @@ const MAX_IMAGE_BYTES = 200 * 1024; // ~200KB ต่อรูป (เก็บ�
 function formatMessageTime(isoString) {
   if (!isoString) return "";
   const date = new Date(isoString);
-  return date.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("th-TH", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 /**
  * @param {{ role: "viewer" | "owner" }} props
@@ -146,8 +150,9 @@ export default function ChatBox({ role }) {
 
   return (
     <div className="w-full max-w-sm flex flex-col gap-2">
-      <label className="text-sm font-medium text-ink/70">Minichat 💬</label>
-
+      <label className="text-sm font-medium text-ink/70 flex items-center gap-1.5">
+        <MessageCircle className="w-4 h-4" /> Mini Chat
+      </label>
       <div
         ref={scrollRef}
         className="glass-card p-3 h-56 overflow-y-auto flex flex-col gap-2"
@@ -158,37 +163,43 @@ export default function ChatBox({ role }) {
           </p>
         )}
         {messages.map((msg) => {
-  const isSelf = msg.from === role;
-  return (
-    <div
-      key={msg.id}
-      className={`max-w-[75%] flex flex-col gap-0.5 ${isSelf ? "self-end items-end" : "self-start items-start"}`}
-    >
-      <div
-        className={`rounded-2xl px-3 py-2 text-sm ${
-          isSelf ? "bg-primary text-white" : "bg-white/70 text-ink"
-        }`}
-      >
-        {msg.type === "text" && <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
-        {msg.type === "gif" && (
-          <img
-            src={msg.content}
-            alt="gif"
-            className="rounded-xl w-40 h-40 object-cover block"
-          />
-        )}
-        {msg.type === "image" && (
-          <img
-            src={msg.content}
-            alt="รูปภาพ"
-            className="rounded-xl w-40 h-40 object-cover block"
-          />
-        )}
-      </div>
-      <span className="text-[10px] text-ink/35 px-1">{formatMessageTime(msg.sentAt)}</span>
-    </div>
-  );
-})}
+          const isSelf = msg.from === role;
+          return (
+            <div
+              key={msg.id}
+              className={`max-w-[75%] flex flex-col gap-0.5 ${isSelf ? "self-end items-end" : "self-start items-start"}`}
+            >
+              <div
+                className={`rounded-2xl px-3 py-2 text-sm ${
+                  isSelf ? "bg-primary text-white" : "bg-white/70 text-ink"
+                }`}
+              >
+                {msg.type === "text" && (
+                  <p className="whitespace-pre-wrap break-words">
+                    {msg.content}
+                  </p>
+                )}
+                {msg.type === "gif" && (
+                  <img
+                    src={msg.content}
+                    alt="gif"
+                    className="rounded-xl w-40 h-40 object-cover block"
+                  />
+                )}
+                {msg.type === "image" && (
+                  <img
+                    src={msg.content}
+                    alt="รูปภาพ"
+                    className="rounded-xl w-40 h-40 object-cover block"
+                  />
+                )}
+              </div>
+              <span className="text-[10px] text-ink/35 px-1">
+                {formatMessageTime(msg.sentAt)}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {mode === "text" ? (
@@ -198,31 +209,31 @@ export default function ChatBox({ role }) {
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, MAX_TEXT_LENGTH))}
             onKeyDown={handleKeyDown}
-            placeholder="พิมพ์ข้อความ..."
+            placeholder="Type a Message..."
             className="glass-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 flex-1 min-w-0"
           />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="w-10 h-10 shrink-0 rounded-full glass-card flex items-center justify-center btn-press text-base"
-            title="ส่งรูปภาพ"
+            className="w-10 h-10 shrink-0 rounded-full glass-card flex items-center justify-center btn-press"
+            title="Send image"
           >
-            🖼️
+            <ImageIcon className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => setMode("gif")}
-            className="w-10 h-10 shrink-0 rounded-full glass-card flex items-center justify-center btn-press text-base"
-            title="ส่ง GIF"
+            className="w-10 h-10 shrink-0 rounded-full glass-card flex items-center justify-center btn-press"
+            title="Send GIF"
           >
-            🎞️
+            <Film className="w-4 h-4" />
           </button>
           <button
             onClick={handleSendText}
             disabled={disabled || !text.trim()}
-            className="w-10 h-10 shrink-0 rounded-full bg-primary text-white flex items-center justify-center btn-press disabled:opacity-40 text-base"
+            className="w-10 h-10 shrink-0 rounded-full bg-primary text-white flex items-center justify-center btn-press disabled:opacity-40"
           >
-            ➤
+            <Send className="w-4 h-4" />
           </button>
           <input
             ref={fileInputRef}
@@ -239,7 +250,7 @@ export default function ChatBox({ role }) {
               type="text"
               value={gifQuery}
               onChange={(e) => setGifQuery(e.target.value)}
-              placeholder="ค้นหา GIF..."
+              placeholder="Search GIFs..."
               className="glass-card px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50 flex-1"
             />
             <button
@@ -247,7 +258,7 @@ export default function ChatBox({ role }) {
               onClick={() => setMode("text")}
               className="min-w-[40px] min-h-[40px] rounded-full glass-card flex items-center justify-center btn-press"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
           {searchingGif && <p className="text-xs text-ink/40">Searching...</p>}
@@ -279,7 +290,7 @@ export default function ChatBox({ role }) {
         </span>
         {disabled && (
           <span className="text-[11px] text-accent/70">
-            Wait {cooldownLeft} Seconds Before Sending Another Message
+            Wait {cooldownLeft} s before sending again
           </span>
         )}
       </div>

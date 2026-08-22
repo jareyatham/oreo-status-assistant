@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Lottie from "lottie-react";
 import { STATUS_CONFIG } from "../constants/statusConfig";
+import { ImagePlus } from "lucide-react";
 
 function isLottieFile(filename) {
   return filename?.endsWith(".json");
