@@ -347,7 +347,7 @@ export default function ChatBox({ role }) {
                   type="button"
                   onClick={() => handleSendGif(gif)}
                   disabled={disabled}
-                  className="rounded-xl overflow-hidden aspect-square glass-card btn-press disabled:opacity-40 bg-black/5 flex items-center justify-center"
+                  className="rounded-xl overflow-hidden glass-card btn-press disabled:opacity-40 bg-black/5 flex items-center justify-center h-24 w-full"
                 >
                   <img
                     src={gif.previewUrl}

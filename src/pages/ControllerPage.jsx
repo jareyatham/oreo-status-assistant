@@ -261,7 +261,7 @@ export default function ControllerPage() {
                           key={gif.id}
                           type="button"
                           onClick={() => setCustomImageBase64(gif.fullUrl)}
-                          className={`rounded-xl overflow-hidden aspect-square glass-card transition bg-black/5 flex items-center justify-center ${
+                          className={`rounded-xl overflow-hidden glass-card transition bg-black/5 flex items-center justify-center h-24 w-full ${
                             customImageBase64 === gif.fullUrl
                               ? "ring-2 ring-primary"
                               : ""
