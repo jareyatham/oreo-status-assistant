@@ -12,7 +12,10 @@ const COMPRESSED_QUALITY = 0.75;
 function formatMessageTime(isoString) {
   if (!isoString) return "";
   const date = new Date(isoString);
-  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function compressImage(file) {
@@ -70,13 +73,19 @@ export default function ChatBox({ role }) {
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages]);
 
   useEffect(() => {
     if (cooldownLeft <= 0) return;
     const timer = setInterval(() => {
-      const remain = Math.max(0, SEND_COOLDOWN_MS - (Date.now() - lastSentAtRef.current));
+      const remain = Math.max(
+        0,
+        SEND_COOLDOWN_MS - (Date.now() - lastSentAtRef.current),
+      );
       setCooldownLeft(Math.ceil(remain / 1000));
     }, 250);
     return () => clearInterval(timer);
@@ -193,9 +202,14 @@ export default function ChatBox({ role }) {
         <MessageCircle className="w-4 h-4" /> Mini Chat
       </label>
 
-      <div ref={scrollRef} className="glass-card p-3 h-56 overflow-y-auto flex flex-col gap-2">
+      <div
+        ref={scrollRef}
+        className="glass-card p-3 h-56 overflow-y-auto flex flex-col gap-2"
+      >
         {messages.length === 0 && (
-          <p className="text-xs text-ink/30 text-center my-auto">No messages yet — send the first message</p>
+          <p className="text-xs text-ink/30 text-center my-auto">
+            No messages yet — send the first message
+          </p>
         )}
         {messages.map((msg) => {
           const isSelf = msg.from === role;
@@ -209,7 +223,11 @@ export default function ChatBox({ role }) {
                   isSelf ? "bg-primary text-white" : "bg-white/70 text-ink"
                 }`}
               >
-                {msg.type === "text" && <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
+                {msg.type === "text" && (
+                  <p className="whitespace-pre-wrap break-words">
+                    {msg.content}
+                  </p>
+                )}
                 {(msg.type === "gif" || msg.type === "image") && (
                   <button
                     type="button"
@@ -224,7 +242,9 @@ export default function ChatBox({ role }) {
                   </button>
                 )}
               </div>
-              <span className="text-[10px] text-ink/35 px-1">{formatMessageTime(msg.sentAt)}</span>
+              <span className="text-[10px] text-ink/35 px-1">
+                {formatMessageTime(msg.sentAt)}
+              </span>
             </div>
           );
         })}
@@ -233,7 +253,11 @@ export default function ChatBox({ role }) {
       {/* Preview รูปที่เลือกไว้ รอกด confirm ก่อนส่งจริง */}
       {pendingImage && (
         <div className="glass-card p-2 flex items-center gap-3">
-          <img src={pendingImage} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
+          <img
+            src={pendingImage}
+            alt="Preview"
+            className="w-16 h-16 rounded-xl object-cover"
+          />
           <div className="flex-1 flex flex-col gap-1">
             <p className="text-xs text-ink/60">Send this image?</p>
             <div className="flex gap-2">
@@ -316,16 +340,20 @@ export default function ChatBox({ role }) {
           </div>
           {searchingGif && <p className="text-xs text-ink/40">Searching...</p>}
           {gifResults.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
+            <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
               {gifResults.map((gif) => (
                 <button
                   key={gif.id}
                   type="button"
                   onClick={() => handleSendGif(gif)}
                   disabled={disabled}
-                  className="rounded-xl overflow-hidden aspect-square glass-card btn-press disabled:opacity-40"
+                  className="rounded-xl overflow-hidden aspect-square glass-card btn-press disabled:opacity-40 bg-black/5 flex items-center justify-center"
                 >
-                  <img src={gif.previewUrl} alt="GIF option" className="w-full h-full object-cover" />
+                  <img
+                    src={gif.previewUrl}
+                    alt="GIF option"
+                    className="max-w-full max-h-full object-contain"
+                  />
                 </button>
               ))}
             </div>
@@ -338,19 +366,25 @@ export default function ChatBox({ role }) {
           {mode === "text" ? `${text.length}/${MAX_TEXT_LENGTH}` : ""}
         </span>
         {disabled && (
-          <span className="text-[11px] text-accent/70">Wait {cooldownLeft}s before sending again</span>
+          <span className="text-[11px] text-accent/70">
+            Wait {cooldownLeft}s before sending again
+          </span>
         )}
       </div>
 
       {/* Lightbox — ขยายรูปเต็มจอ */}
       {lightboxImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6"
           onClick={() => setLightboxImage(null)}
         >
           <button
             onClick={() => setLightboxImage(null)}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+            className="fixed w-11 h-11 rounded-full bg-white/15 flex items-center justify-center z-[101] active:bg-white/25"
+            style={{
+              top: "calc(env(safe-area-inset-top, 0px) + 16px)",
+              right: "calc(env(safe-area-inset-right, 0px) + 16px)",
+            }}
           >
             <X className="w-5 h-5 text-white" />
           </button>

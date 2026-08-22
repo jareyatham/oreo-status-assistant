@@ -255,13 +255,13 @@ export default function ControllerPage() {
                   )}
 
                   {gifResults.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2 max-h-56 overflow-y-auto p-1">
+                    <div className="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
                       {gifResults.map((gif) => (
                         <button
                           key={gif.id}
                           type="button"
                           onClick={() => setCustomImageBase64(gif.fullUrl)}
-                          className={`rounded-xl overflow-hidden aspect-square glass-card transition ${
+                          className={`rounded-xl overflow-hidden aspect-square glass-card transition bg-black/5 flex items-center justify-center ${
                             customImageBase64 === gif.fullUrl
                               ? "ring-2 ring-primary"
                               : ""
@@ -270,7 +270,7 @@ export default function ControllerPage() {
                           <img
                             src={gif.previewUrl}
                             alt="GIF option"
-                            className="w-full h-full object-cover"
+                            className="max-w-full max-h-full object-contain"
                           />
                         </button>
                       ))}
