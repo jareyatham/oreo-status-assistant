@@ -2,27 +2,23 @@
   "rules": {
     "status": {
       ".read": true,
-      ".write": "newData.child('secret').val() === 'oreo-jrytms02lkw888'",
+      ".write": "newData.child('secret').val() === 'oreo-jrytms02lkw888smkmkiwm1'",
       ".validate": "newData.hasChildren(['status','message','autoMessage','updatedAt','mood','secret'])",
       "status": { ".validate": "newData.isString()" },
       "customStatus": { ".validate": "newData.isString()" },
       "customEmoji": { ".validate": "newData.isString()" },
-      "customImageBase64": {
-        ".validate": "newData.isString() && newData.val().length < 700000"
-      },
+      "customImageBase64": { ".validate": "newData.isString() && newData.val().length < 1000000" },
       "message": { ".validate": "newData.isString()" },
       "autoMessage": { ".validate": "newData.isString()" },
       "endTime": { ".validate": "newData.isString()" },
       "updatedAt": { ".validate": "newData.isString()" },
-      "mood": {
-        ".validate": "newData.val() == 'cute' || newData.val() == 'professional' || newData.val() == 'auto'"
-      },
+      "mood": { ".validate": "newData.val() == 'cute' || newData.val() == 'professional' || newData.val() == 'auto'" },
       "secret": { ".validate": "newData.isString()" }
     },
     "reactions": {
       ".read": true,
+      ".write": true,
       "$reactionId": {
-        ".write": true,
         ".validate": "newData.hasChildren(['emoji','sentAt']) && newData.child('emoji').val().matches(/^(❤️|😆|🥹|😮|🔥)$/) && newData.child('sentAt').isString()"
       }
     },
@@ -31,6 +27,13 @@
       ".write": true,
       "$messageId": {
         ".validate": "newData.hasChildren(['type','content','from','sentAt']) && newData.child('type').val().matches(/^(text|gif|image)$/) && newData.child('content').isString() && newData.child('content').val().length <= 800000 && newData.child('from').val().matches(/^(viewer|owner)$/) && newData.child('sentAt').isString()"
+      }
+    },
+    "viewLogs": {
+      ".read": true,
+      ".write": true,
+      "$logId": {
+        ".validate": "newData.hasChildren(['viewedAt']) && newData.child('viewedAt').isString()"
       }
     }
   }

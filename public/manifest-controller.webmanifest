@@ -1,0 +1,21 @@
+{
+  "name": "Oreo Controller",
+  "short_name": "Oreo Ctrl",
+  "description": "Control panel for Oreo Status Assistant",
+  "theme_color": "#F4FAF3",
+  "background_color": "#F4FAF3",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/control-s1sqlfctl212748",
+  "scope": "/control-s1sqlfctl212748",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

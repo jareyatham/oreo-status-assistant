@@ -13,12 +13,49 @@ import { clearReactions } from "../lib/reactionStore";
 import { PawPrint, Plus, Upload, Search, X } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import { APP_VERSION } from "../constants/version";
+import ViewLog from "../components/ViewLog";
 
 const MOOD_OPTIONS = [
   { value: "auto", label: "Auto" },
   { value: "cute", label: "Cute" },
   { value: "professional", label: "Professional" },
 ];
+
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // รับไฟล์ input ได้สูงสุด 8MB
+const COMPRESSED_MAX_DIMENSION = 1280;
+const COMPRESSED_QUALITY = 0.75;
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > COMPRESSED_MAX_DIMENSION) {
+          height = Math.round((height * COMPRESSED_MAX_DIMENSION) / width);
+          width = COMPRESSED_MAX_DIMENSION;
+        } else if (height > COMPRESSED_MAX_DIMENSION) {
+          width = Math.round((width * COMPRESSED_MAX_DIMENSION) / height);
+          height = COMPRESSED_MAX_DIMENSION;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL("image/jpeg", COMPRESSED_QUALITY));
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
 
 const MAX_IMAGE_BYTES = 400 * 1024; // ไฟล์ต้นฉบับไม่เกิน ~400KB
 
@@ -39,6 +76,16 @@ export default function ControllerPage() {
   const [gifResults, setGifResults] = useState([]);
   const [searchingGif, setSearchingGif] = useState(false);
 
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = "/manifest-controller.webmanifest";
+    document.head.appendChild(link);
+
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
   // โหลดค่าปัจจุบันมาแสดงตอนเปิดหน้า
   useEffect(() => {
     const unsubscribe = subscribeStatus((data) => {
@@ -83,26 +130,31 @@ export default function ControllerPage() {
     mood,
   });
 
-  function handleImageSelected(e) {
+  async function handleImageSelected(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("อัปโหลดได้เฉพาะไฟล์รูปภาพเท่านั้น");
+      alert("Only image files are supported");
       e.target.value = "";
       return;
     }
 
-    if (file.size > MAX_IMAGE_BYTES) {
-      alert("ไฟล์ใหญ่เกินไป กรุณาเลือกรูปที่เล็กกว่า 400KB");
+    if (file.size > MAX_UPLOAD_BYTES) {
+      alert("File too large. Please choose an image smaller than 8MB");
       e.target.value = "";
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => setCustomImageBase64(reader.result);
-    reader.onerror = () => alert("อ่านไฟล์ไม่สำเร็จ ลองใหม่อีกครั้ง");
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file);
+      setCustomImageBase64(compressed);
+    } catch (err) {
+      console.error("ประมวลผลรูปไม่สำเร็จ:", err);
+      alert("Failed to process image, please try again");
+    } finally {
+      e.target.value = "";
+    }
   }
 
   async function handleUpdate() {
@@ -146,6 +198,7 @@ export default function ControllerPage() {
       />
 
       <ReactionFeed />
+      <ViewLog />
 
       {/* Status selector */}
       <div className="w-full max-w-sm flex flex-col gap-1.5">
@@ -297,7 +350,8 @@ export default function ControllerPage() {
               )}
 
               <p className="text-xs text-ink/40">
-                Upload an image (max 400KB) or search Giphy and pick one
+                Upload an image (up to 8MB, auto-compressed) or search Giphy
+                andpick one
               </p>
             </div>
           </>

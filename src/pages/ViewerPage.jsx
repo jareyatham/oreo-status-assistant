@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { subscribeStatus } from "../lib/statusStore";
 import { resolveFinalMessage } from "../lib/messageGenerator";
 import Mascot from "../components/Mascot";
 import StatusBadge from "../components/StatusBadge";
 import ReactionBar from "../components/ReactionBar";
 import ChatBox from "../components/ChatBox";
-import { Clock } from "lucide-react";
+import { Clock, PawPrint } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import { APP_VERSION } from "../constants/version";
-import { PawPrint } from "lucide-react";
+import { recordView } from "../lib/viewCounter";
 
 function formatUpdatedAt(isoString) {
   if (!isoString) return "";
   const date = new Date(isoString);
-  return date.toLocaleTimeString("th-TH", {
+  return date.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -21,10 +21,27 @@ function formatUpdatedAt(isoString) {
 
 export default function ViewerPage() {
   const [data, setData] = useState(null);
+  const hasRecordedView = useRef(false);
+
+  useEffect(() => {
+  const existing = document.querySelector('link[rel="manifest"][href="/manifest-controller.webmanifest"]');
+  if (existing) existing.remove();
+
+  const link = document.createElement("link");
+  link.rel = "manifest";
+  link.href = "/manifest.webmanifest"; // path มาตรฐานที่ vite-plugin-pwa gen ให้
+  document.head.appendChild(link);
+}, []);
 
   useEffect(() => {
     const unsubscribe = subscribeStatus(setData);
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (hasRecordedView.current) return;
+    hasRecordedView.current = true;
+    recordView().catch((err) => console.error("บันทึกการเข้าชมไม่สำเร็จ:", err));
   }, []);
 
   if (!data) {
@@ -77,7 +94,7 @@ export default function ViewerPage() {
 
           {data.endTime && (
             <p className="text-sm text-accent font-medium flex items-center gap-1">
-              <Clock className="w-4 h-4" /> คาดว่าจะกลับมาประมาณ {data.endTime}
+              <Clock className="w-4 h-4" /> Expected back around {data.endTime}
             </p>
           )}
 
