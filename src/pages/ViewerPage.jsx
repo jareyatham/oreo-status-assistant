@@ -24,16 +24,6 @@ export default function ViewerPage() {
   const hasRecordedView = useRef(false);
 
   useEffect(() => {
-  const existing = document.querySelector('link[rel="manifest"][href="/manifest-controller.webmanifest"]');
-  if (existing) existing.remove();
-
-  const link = document.createElement("link");
-  link.rel = "manifest";
-  link.href = "/manifest.webmanifest"; // path มาตรฐานที่ vite-plugin-pwa gen ให้
-  document.head.appendChild(link);
-}, []);
-
-  useEffect(() => {
     const unsubscribe = subscribeStatus(setData);
     return () => unsubscribe();
   }, []);

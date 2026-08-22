@@ -14,6 +14,7 @@ import { PawPrint, Plus, Upload, Search, X } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import { APP_VERSION } from "../constants/version";
 import ViewLog from "../components/ViewLog";
+import { clearViewLogs } from "../lib/viewCounter";
 
 const MOOD_OPTIONS = [
   { value: "auto", label: "Auto" },
@@ -76,16 +77,6 @@ export default function ControllerPage() {
   const [gifResults, setGifResults] = useState([]);
   const [searchingGif, setSearchingGif] = useState(false);
 
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "manifest";
-    link.href = "/manifest-controller.webmanifest";
-    document.head.appendChild(link);
-
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
   // โหลดค่าปัจจุบันมาแสดงตอนเปิดหน้า
   useEffect(() => {
     const unsubscribe = subscribeStatus((data) => {
@@ -171,8 +162,9 @@ export default function ControllerPage() {
         updatedAt: new Date().toISOString(),
         mood,
       });
-      await clearChat(); // ล้างแชทเดิมทุกครั้งที่อัปเดตสถานะใหม่
-      await clearReactions(); // ล้าง reaction เดิมทุกครั้งที่อัปเดตสถานะใหม่
+      await clearChat();
+      await clearReactions();
+      await clearViewLogs(); // ล้างประวัติ Viewer visits เมื่ออัปเดตสถานะใหม่
       setSavedAt(new Date());
     } catch (err) {
       console.error("อัปเดตไม่สำเร็จ:", err);

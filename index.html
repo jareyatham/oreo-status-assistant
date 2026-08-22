@@ -23,5 +23,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      (function () {
+        var isController = window.location.pathname.indexOf("/control-s1sqlfctl212748") === 0;
+        var href = isController ? "/manifest-controller.webmanifest" : "/manifest.webmanifest";
+        var link = document.querySelector('link[rel="manifest"]');
+        if (link) {
+          link.setAttribute("href", href);
+        } else {
+          link = document.createElement("link");
+          link.rel = "manifest";
+          link.href = href;
+          document.head.appendChild(link);
+        }
+      })();
+    </script>
   </body>
 </html>
