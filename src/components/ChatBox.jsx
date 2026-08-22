@@ -5,7 +5,46 @@ import { MessageCircle, Image as ImageIcon, Film, Send, X } from "lucide-react";
 
 const SEND_COOLDOWN_MS = 3000; // กันสแปม ส่งได้ทุก 3 วิ
 const MAX_TEXT_LENGTH = 200;
-const MAX_IMAGE_BYTES = 200 * 1024; // ~200KB ต่อรูป (เก็บเป็น base64 ใน RTDB)
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // รับไฟล์ input ได้สูงสุด 8MB
+const COMPRESSED_MAX_DIMENSION = 1280; // ย่อด้านยาวสุดไม่เกิน 1280px
+const COMPRESSED_QUALITY = 0.75; // คุณภาพ JPEG หลังบีบอัด
+
+/**
+ * บีบอัดรูปฝั่ง client ก่อนส่ง — ย่อขนาดและแปลงเป็น JPEG คุณภาพพอเหมาะ
+ * @param {File} file
+ * @returns {Promise<string>} base64 data URL ของรูปที่บีบอัดแล้ว
+ */
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > COMPRESSED_MAX_DIMENSION) {
+          height = Math.round((height * COMPRESSED_MAX_DIMENSION) / width);
+          width = COMPRESSED_MAX_DIMENSION;
+        } else if (height > COMPRESSED_MAX_DIMENSION) {
+          width = Math.round((width * COMPRESSED_MAX_DIMENSION) / height);
+          height = COMPRESSED_MAX_DIMENSION;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL("image/jpeg", COMPRESSED_QUALITY));
+      };
+      img.onerror = () => reject(new Error("โหลดรูปไม่สำเร็จ"));
+      img.src = reader.result;
+    };
+    reader.onerror = () => reject(new Error("อ่านไฟล์ไม่สำเร็จ"));
+    reader.readAsDataURL(file);
+  });
+}
 
 function formatMessageTime(isoString) {
   if (!isoString) return "";
@@ -106,38 +145,37 @@ export default function ChatBox({ role }) {
     }
   }
 
-  function handleImageSelected(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function handleImageSelected(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Image Upload Only");
-      e.target.value = "";
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      alert("Please upload an image under 200KB.");
-      e.target.value = "";
-      return;
-    }
-    if (!canSendNow()) {
-      alert(`Wait ${cooldownLeft} Seconds Before Sending Another Message`);
-      e.target.value = "";
-      return;
-    }
+  if (!file.type.startsWith("image/")) {
+    alert("Only image files are supported");
+    e.target.value = "";
+    return;
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    alert("File too large. Please choose an image smaller than 8MB");
+    e.target.value = "";
+    return;
+  }
+  if (!canSendNow()) {
+    alert(`Wait ${cooldownLeft}s before sending again`);
+    e.target.value = "";
+    return;
+  }
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      markSent();
-      try {
-        await sendChatMessage("image", reader.result, role);
-      } catch (err) {
-        console.error("Image Upload Failed:", err);
-      }
-    };
-    reader.readAsDataURL(file);
+  try {
+    const compressed = await compressImage(file);
+    markSent();
+    await sendChatMessage("image", compressed, role);
+  } catch (err) {
+    console.error("ส่งรูปไม่สำเร็จ:", err);
+    alert("Failed to process image, please try again");
+  } finally {
     e.target.value = "";
   }
+}
 
   function handleKeyDown(e) {
     if (e.key === "Enter") {

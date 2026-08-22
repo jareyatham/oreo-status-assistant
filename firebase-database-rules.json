@@ -7,12 +7,16 @@
       "status": { ".validate": "newData.isString()" },
       "customStatus": { ".validate": "newData.isString()" },
       "customEmoji": { ".validate": "newData.isString()" },
-      "customImageBase64": { ".validate": "newData.isString() && newData.val().length < 700000" },
+      "customImageBase64": {
+        ".validate": "newData.isString() && newData.val().length < 700000"
+      },
       "message": { ".validate": "newData.isString()" },
       "autoMessage": { ".validate": "newData.isString()" },
       "endTime": { ".validate": "newData.isString()" },
       "updatedAt": { ".validate": "newData.isString()" },
-      "mood": { ".validate": "newData.val() == 'cute' || newData.val() == 'professional' || newData.val() == 'auto'" },
+      "mood": {
+        ".validate": "newData.val() == 'cute' || newData.val() == 'professional' || newData.val() == 'auto'"
+      },
       "secret": { ".validate": "newData.isString()" }
     },
     "reactions": {
@@ -26,7 +30,7 @@
       ".read": true,
       ".write": true,
       "$messageId": {
-        ".validate": "newData.hasChildren(['type','content','from','sentAt']) && newData.child('type').val().matches(/^(text|gif|image)$/) && newData.child('content').isString() && newData.child('content').val().length <= 300000 && newData.child('from').val().matches(/^(viewer|owner)$/) && newData.child('sentAt').isString()"
+        ".validate": "newData.hasChildren(['type','content','from','sentAt']) && newData.child('type').val().matches(/^(text|gif|image)$/) && newData.child('content').isString() && newData.child('content').val().length <= 800000 && newData.child('from').val().matches(/^(viewer|owner)$/) && newData.child('sentAt').isString()"
       }
     }
   }
