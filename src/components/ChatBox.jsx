@@ -12,10 +12,7 @@ const COMPRESSED_QUALITY = 0.75;
 function formatMessageTime(isoString) {
   if (!isoString) return "";
   const date = new Date(isoString);
-  return date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
 function compressImage(file) {
@@ -62,7 +59,8 @@ export default function ChatBox({ role }) {
   const [searchingGif, setSearchingGif] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
   const [pendingMedia, setPendingMedia] = useState(null); // { type: "image"|"gif", content: string }
-  const [lightboxImage, setLightboxImage] = useState(null); // url รูปที่กำลังขยายดู  const lastSentAtRef = useRef(0);
+  const [lightboxImage, setLightboxImage] = useState(null); // url รูปที่กำลังขยายดู
+  const lastSentAtRef = useRef(0);
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -72,19 +70,13 @@ export default function ChatBox({ role }) {
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
     if (cooldownLeft <= 0) return;
     const timer = setInterval(() => {
-      const remain = Math.max(
-        0,
-        SEND_COOLDOWN_MS - (Date.now() - lastSentAtRef.current),
-      );
+      const remain = Math.max(0, SEND_COOLDOWN_MS - (Date.now() - lastSentAtRef.current));
       setCooldownLeft(Math.ceil(remain / 1000));
     }, 250);
     return () => clearInterval(timer);
@@ -117,9 +109,24 @@ export default function ChatBox({ role }) {
     setCooldownLeft(Math.ceil(SEND_COOLDOWN_MS / 1000));
   }
 
-  async function handleSendText() {
+  // ปุ่ม Send เดียว ใช้ได้ทั้งข้อความ, รูป, และ GIF — ส่งอะไรก่อนขึ้นอยู่กับว่ามี pendingMedia ไหม
+  async function handleSend() {
+    if (!canSendNow()) return;
+
+    if (pendingMedia) {
+      markSent();
+      const toSend = pendingMedia;
+      setPendingMedia(null);
+      try {
+        await sendChatMessage(toSend.type, toSend.content, role);
+      } catch (err) {
+        console.error("ส่งไม่สำเร็จ:", err);
+      }
+      return;
+    }
+
     const trimmed = text.trim();
-    if (!trimmed || !canSendNow()) return;
+    if (!trimmed) return;
     markSent();
     setText("");
     try {
@@ -136,7 +143,10 @@ export default function ChatBox({ role }) {
     setGifResults([]);
   }
 
-  // Step 1: เลือกไฟล์ → บีบอัด → เอาไปโชว์ preview รอ confirm (ยังไม่ส่ง)
+  function handleCancelMedia() {
+    setPendingMedia(null);
+  }
+
   async function handleImageSelected(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -163,32 +173,15 @@ export default function ChatBox({ role }) {
     }
   }
 
-  // Step 2: กดยืนยันส่งจริง
-  // กดยืนยันส่งจริง — ใช้ได้ทั้งรูปที่อัปโหลดและ GIF ที่เลือก
-  async function handleConfirmSendMedia() {
-    if (!pendingMedia || !canSendNow()) return;
-    markSent();
-    const toSend = pendingMedia;
-    setPendingMedia(null);
-    try {
-      await sendChatMessage(toSend.type, toSend.content, role);
-    } catch (err) {
-      console.error("ส่งไม่สำเร็จ:", err);
-    }
-  }
-
-  function handleCancelMedia() {
-    setPendingMedia(null);
-  }
-
   function handleKeyDown(e) {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleSendText();
+      handleSend();
     }
   }
 
   const disabled = cooldownLeft > 0;
+  const canPressSend = !disabled && (!!pendingMedia || !!text.trim());
 
   return (
     <div className="w-full max-w-sm flex flex-col gap-2">
@@ -196,14 +189,9 @@ export default function ChatBox({ role }) {
         <MessageCircle className="w-4 h-4" /> Mini Chat
       </label>
 
-      <div
-        ref={scrollRef}
-        className="glass-card p-3 h-56 overflow-y-auto flex flex-col gap-2"
-      >
+      <div ref={scrollRef} className="glass-card p-3 h-56 overflow-y-auto flex flex-col gap-2">
         {messages.length === 0 && (
-          <p className="text-xs text-ink/30 text-center my-auto">
-            No messages yet — send the first message
-          </p>
+          <p className="text-xs text-ink/30 text-center my-auto">No messages yet — send the first message</p>
         )}
         {messages.map((msg) => {
           const isSelf = msg.from === role;
@@ -217,17 +205,9 @@ export default function ChatBox({ role }) {
                   isSelf ? "bg-primary text-white" : "bg-white/70 text-ink"
                 }`}
               >
-                {msg.type === "text" && (
-                  <p className="whitespace-pre-wrap break-words">
-                    {msg.content}
-                  </p>
-                )}
+                {msg.type === "text" && <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
                 {(msg.type === "gif" || msg.type === "image") && (
-                  <button
-                    type="button"
-                    onClick={() => setLightboxImage(msg.content)}
-                    className="block"
-                  >
+                  <button type="button" onClick={() => setLightboxImage(msg.content)} className="block">
                     <img
                       src={msg.content}
                       alt={msg.type === "gif" ? "gif" : "image"}
@@ -236,43 +216,32 @@ export default function ChatBox({ role }) {
                   </button>
                 )}
               </div>
-              <span className="text-[10px] text-ink/35 px-1">
-                {formatMessageTime(msg.sentAt)}
-              </span>
+              <span className="text-[10px] text-ink/35 px-1">{formatMessageTime(msg.sentAt)}</span>
             </div>
           );
         })}
       </div>
 
-      {/* Preview รูปที่เลือกไว้ รอกด confirm ก่อนส่งจริง */}
-      {/* Preview รูป/GIF ที่เลือกไว้ รอกด confirm ก่อนส่งจริง */}
+      {/* Preview รูป/GIF ที่เลือกไว้ รอกดปุ่ม Send เดียวกับข้อความ */}
       {pendingMedia && (
         <div className="glass-card p-2 flex items-center gap-3">
-          <img
-            src={pendingMedia.content}
-            alt="Preview"
-            className="w-16 h-16 rounded-xl object-cover"
-          />
-          <div className="flex-1 flex flex-col gap-1">
-            <p className="text-xs text-ink/60">
-              Send this {pendingMedia.type === "gif" ? "GIF" : "image"}?
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={handleConfirmSendMedia}
-                disabled={disabled}
-                className="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-medium btn-press disabled:opacity-40"
-              >
-                Send
-              </button>
-              <button
-                onClick={handleCancelMedia}
-                className="px-3 py-1.5 rounded-full glass-card text-xs font-medium btn-press"
-              >
-                Cancel
-              </button>
-            </div>
+          <div className="relative">
+            <img
+              src={pendingMedia.content}
+              alt="Preview"
+              className="w-14 h-14 rounded-xl object-cover"
+            />
+            <button
+              onClick={handleCancelMedia}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-ink/70 flex items-center justify-center"
+              title="Remove"
+            >
+              <X className="w-3 h-3 text-white" />
+            </button>
           </div>
+          <p className="text-xs text-ink/50 flex-1">
+            {pendingMedia.type === "gif" ? "GIF" : "Image"} ready — press send
+          </p>
         </div>
       )}
 
@@ -284,7 +253,8 @@ export default function ChatBox({ role }) {
             onChange={(e) => setText(e.target.value.slice(0, MAX_TEXT_LENGTH))}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="glass-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 flex-1 min-w-0"
+            disabled={!!pendingMedia}
+            className="glass-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 flex-1 min-w-0 disabled:opacity-50"
           />
           <button
             type="button"
@@ -303,8 +273,8 @@ export default function ChatBox({ role }) {
             <Film className="w-4 h-4" />
           </button>
           <button
-            onClick={handleSendText}
-            disabled={disabled || !text.trim()}
+            onClick={handleSend}
+            disabled={!canPressSend}
             className="w-10 h-10 shrink-0 rounded-full bg-primary text-white flex items-center justify-center btn-press disabled:opacity-40"
           >
             <Send className="w-4 h-4" />
@@ -345,11 +315,7 @@ export default function ChatBox({ role }) {
                   onClick={() => handleSelectGif(gif)}
                   className="rounded-xl overflow-hidden glass-card btn-press bg-black/5 flex items-center justify-center h-24 w-full"
                 >
-                  <img
-                    src={gif.previewUrl}
-                    alt="GIF option"
-                    className="max-w-full max-h-full object-contain"
-                  />
+                  <img src={gif.previewUrl} alt="GIF option" className="max-w-full max-h-full object-contain" />
                 </button>
               ))}
             </div>
@@ -359,12 +325,10 @@ export default function ChatBox({ role }) {
 
       <div className="flex items-center justify-between px-1">
         <span className="text-[11px] text-ink/30">
-          {mode === "text" ? `${text.length}/${MAX_TEXT_LENGTH}` : ""}
+          {mode === "text" && !pendingMedia ? `${text.length}/${MAX_TEXT_LENGTH}` : ""}
         </span>
         {disabled && (
-          <span className="text-[11px] text-accent/70">
-            Wait {cooldownLeft}s before sending again
-          </span>
+          <span className="text-[11px] text-accent/70">Wait {cooldownLeft}s before sending again</span>
         )}
       </div>
 
