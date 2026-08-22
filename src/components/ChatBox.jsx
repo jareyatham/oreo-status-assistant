@@ -61,8 +61,8 @@ export default function ChatBox({ role }) {
   const [gifResults, setGifResults] = useState([]);
   const [searchingGif, setSearchingGif] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
-  const [pendingMedia, setPendingMedia] = useState(null); // { type: "image"|"gif", content: string }  const [lightboxImage, setLightboxImage] = useState(null); // url รูปที่กำลังขยายดู
-  const lastSentAtRef = useRef(0);
+  const [pendingMedia, setPendingMedia] = useState(null); // { type: "image"|"gif", content: string }
+  const [lightboxImage, setLightboxImage] = useState(null); // url รูปที่กำลังขยายดู  const lastSentAtRef = useRef(0);
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
 
