@@ -8,7 +8,7 @@ function App() {
       <Routes>
         <Route path="/" element={<ViewerPage />} />
         {/* เปลี่ยน path นี้เป็นคำที่เดายากๆ ของตัวเอง แล้วอย่าแชร์ให้ใครนอกจากตัวเอง */}
-        <Route path="/control-xyz123" element={<ControllerPage />} />
+        <Route path="/control-s1sqlfctl212748" element={<ControllerPage />} />
       </Routes>
     </BrowserRouter>
   );
