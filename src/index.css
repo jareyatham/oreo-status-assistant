@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/...');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* กัน iOS auto-zoom ตอน focus input */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+.min-h-dvh {
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  @apply bg-white/60 backdrop-blur-glass border border-white/50 rounded-2xl transition-shadow duration-300;
+  box-shadow:
+    0 1px 2px rgba(31, 41, 55, 0.04),
+    0 8px 24px rgba(95, 141, 137, 0.08);
+}
+@media (hover: hover) {
+  .glass-card:hover {
+    box-shadow:
+      0 2px 4px rgba(31, 41, 55, 0.06),
+      0 12px 32px rgba(95, 141, 137, 0.12);
+  }
+}
+
+/* พื้นหลัง Viewer — soft gradient */
+.bg-app-gradient {
+  background: radial-gradient(circle at 50% 0%, #e8f5e4 0%, #f4faf3 55%, #f4faf3 100%);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes softPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(127, 183, 126, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(127, 183, 126, 0);
+  }
+}
+.pulse-available {
+  animation: softPulse 2.2s ease-in-out infinite;
+}
+
+.btn-press {
+  @apply transition-transform duration-150;
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-70px) scale(1.4);
+  }
+}
