@@ -380,13 +380,13 @@ export default function ChatBox({ role }) {
         >
           <button
             onClick={() => setLightboxImage(null)}
-            className="fixed w-11 h-11 rounded-full bg-white/15 flex items-center justify-center z-[101] active:bg-white/25"
+            className="fixed w-10 h-10 rounded-full bg-white/15 flex items-center justify-center z-[101] active:bg-white/25"
             style={{
               top: "calc(env(safe-area-inset-top, 0px) + 16px)",
               right: "calc(env(safe-area-inset-right, 0px) + 16px)",
             }}
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-4 h-4 text-white" />
           </button>
           <img
             src={lightboxImage}
