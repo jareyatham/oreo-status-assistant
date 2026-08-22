@@ -135,8 +135,14 @@ select {
 .dark .text-ink {
   color: #e8eeec;
 }
+.dark .text-ink\/80 {
+  color: rgb(232 238 236 / 0.8);
+}
 .dark .text-ink\/70 {
   color: rgb(232 238 236 / 0.7);
+}
+.dark .text-ink\/60 {
+  color: rgb(232 238 236 / 0.6);
 }
 .dark .text-ink\/50 {
   color: rgb(232 238 236 / 0.5);
