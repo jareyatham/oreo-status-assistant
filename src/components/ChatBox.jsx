@@ -3,17 +3,18 @@ import { subscribeChatMessages, sendChatMessage } from "../lib/chatStore";
 import { searchGifs } from "../lib/giphy";
 import { MessageCircle, Image as ImageIcon, Film, Send, X } from "lucide-react";
 
-const SEND_COOLDOWN_MS = 3000; // กันสแปม ส่งได้ทุก 3 วิ
+const SEND_COOLDOWN_MS = 3000;
 const MAX_TEXT_LENGTH = 200;
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024; // รับไฟล์ input ได้สูงสุด 8MB
-const COMPRESSED_MAX_DIMENSION = 1280; // ย่อด้านยาวสุดไม่เกิน 1280px
-const COMPRESSED_QUALITY = 0.75; // คุณภาพ JPEG หลังบีบอัด
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const COMPRESSED_MAX_DIMENSION = 1280;
+const COMPRESSED_QUALITY = 0.75;
 
-/**
- * บีบอัดรูปฝั่ง client ก่อนส่ง — ย่อขนาดและแปลงเป็น JPEG คุณภาพพอเหมาะ
- * @param {File} file
- * @returns {Promise<string>} base64 data URL ของรูปที่บีบอัดแล้ว
- */
+function formatMessageTime(isoString) {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+}
+
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -38,22 +39,14 @@ function compressImage(file) {
 
         resolve(canvas.toDataURL("image/jpeg", COMPRESSED_QUALITY));
       };
-      img.onerror = () => reject(new Error("โหลดรูปไม่สำเร็จ"));
+      img.onerror = () => reject(new Error("Failed to load image"));
       img.src = reader.result;
     };
-    reader.onerror = () => reject(new Error("อ่านไฟล์ไม่สำเร็จ"));
+    reader.onerror = () => reject(new Error("Failed to read file"));
     reader.readAsDataURL(file);
   });
 }
 
-function formatMessageTime(isoString) {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  return date.toLocaleTimeString("th-TH", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 /**
  * @param {{ role: "viewer" | "owner" }} props
  */
@@ -65,6 +58,8 @@ export default function ChatBox({ role }) {
   const [gifResults, setGifResults] = useState([]);
   const [searchingGif, setSearchingGif] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
+  const [pendingImage, setPendingImage] = useState(null); // { preview: string } รอ confirm ก่อนส่ง
+  const [lightboxImage, setLightboxImage] = useState(null); // url รูปที่กำลังขยายดู
   const lastSentAtRef = useRef(0);
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -75,19 +70,13 @@ export default function ChatBox({ role }) {
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
     if (cooldownLeft <= 0) return;
     const timer = setInterval(() => {
-      const remain = Math.max(
-        0,
-        SEND_COOLDOWN_MS - (Date.now() - lastSentAtRef.current),
-      );
+      const remain = Math.max(0, SEND_COOLDOWN_MS - (Date.now() - lastSentAtRef.current));
       setCooldownLeft(Math.ceil(remain / 1000));
     }, 250);
     return () => clearInterval(timer);
@@ -145,37 +134,49 @@ export default function ChatBox({ role }) {
     }
   }
 
+  // Step 1: เลือกไฟล์ → บีบอัด → เอาไปโชว์ preview รอ confirm (ยังไม่ส่ง)
   async function handleImageSelected(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  if (!file.type.startsWith("image/")) {
-    alert("Only image files are supported");
-    e.target.value = "";
-    return;
-  }
-  if (file.size > MAX_UPLOAD_BYTES) {
-    alert("File too large. Please choose an image smaller than 8MB");
-    e.target.value = "";
-    return;
-  }
-  if (!canSendNow()) {
-    alert(`Wait ${cooldownLeft}s before sending again`);
-    e.target.value = "";
-    return;
+    if (!file.type.startsWith("image/")) {
+      alert("Only image files are supported");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      alert("File too large. Please choose an image smaller than 8MB");
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      const compressed = await compressImage(file);
+      setPendingImage(compressed);
+    } catch (err) {
+      console.error("ประมวลผลรูปไม่สำเร็จ:", err);
+      alert("Failed to process image, please try again");
+    } finally {
+      e.target.value = "";
+    }
   }
 
-  try {
-    const compressed = await compressImage(file);
+  // Step 2: กดยืนยันส่งจริง
+  async function handleConfirmSendImage() {
+    if (!pendingImage || !canSendNow()) return;
     markSent();
-    await sendChatMessage("image", compressed, role);
-  } catch (err) {
-    console.error("ส่งรูปไม่สำเร็จ:", err);
-    alert("Failed to process image, please try again");
-  } finally {
-    e.target.value = "";
+    const toSend = pendingImage;
+    setPendingImage(null);
+    try {
+      await sendChatMessage("image", toSend, role);
+    } catch (err) {
+      console.error("ส่งรูปไม่สำเร็จ:", err);
+    }
   }
-}
+
+  function handleCancelImage() {
+    setPendingImage(null);
+  }
 
   function handleKeyDown(e) {
     if (e.key === "Enter") {
@@ -191,14 +192,10 @@ export default function ChatBox({ role }) {
       <label className="text-sm font-medium text-ink/70 flex items-center gap-1.5">
         <MessageCircle className="w-4 h-4" /> Mini Chat
       </label>
-      <div
-        ref={scrollRef}
-        className="glass-card p-3 h-56 overflow-y-auto flex flex-col gap-2"
-      >
+
+      <div ref={scrollRef} className="glass-card p-3 h-56 overflow-y-auto flex flex-col gap-2">
         {messages.length === 0 && (
-          <p className="text-xs text-ink/30 text-center my-auto">
-            No Messages Yet — Send the First Message
-          </p>
+          <p className="text-xs text-ink/30 text-center my-auto">No messages yet — send the first message</p>
         )}
         {messages.map((msg) => {
           const isSelf = msg.from === role;
@@ -212,33 +209,51 @@ export default function ChatBox({ role }) {
                   isSelf ? "bg-primary text-white" : "bg-white/70 text-ink"
                 }`}
               >
-                {msg.type === "text" && (
-                  <p className="whitespace-pre-wrap break-words">
-                    {msg.content}
-                  </p>
-                )}
-                {msg.type === "gif" && (
-                  <img
-                    src={msg.content}
-                    alt="gif"
-                    className="rounded-xl w-40 h-40 object-cover block"
-                  />
-                )}
-                {msg.type === "image" && (
-                  <img
-                    src={msg.content}
-                    alt="รูปภาพ"
-                    className="rounded-xl w-40 h-40 object-cover block"
-                  />
+                {msg.type === "text" && <p className="whitespace-pre-wrap break-words">{msg.content}</p>}
+                {(msg.type === "gif" || msg.type === "image") && (
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImage(msg.content)}
+                    className="block"
+                  >
+                    <img
+                      src={msg.content}
+                      alt={msg.type === "gif" ? "gif" : "image"}
+                      className="rounded-xl w-40 h-40 object-cover block cursor-zoom-in"
+                    />
+                  </button>
                 )}
               </div>
-              <span className="text-[10px] text-ink/35 px-1">
-                {formatMessageTime(msg.sentAt)}
-              </span>
+              <span className="text-[10px] text-ink/35 px-1">{formatMessageTime(msg.sentAt)}</span>
             </div>
           );
         })}
       </div>
+
+      {/* Preview รูปที่เลือกไว้ รอกด confirm ก่อนส่งจริง */}
+      {pendingImage && (
+        <div className="glass-card p-2 flex items-center gap-3">
+          <img src={pendingImage} alt="Preview" className="w-16 h-16 rounded-xl object-cover" />
+          <div className="flex-1 flex flex-col gap-1">
+            <p className="text-xs text-ink/60">Send this image?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleConfirmSendImage}
+                disabled={disabled}
+                className="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-medium btn-press disabled:opacity-40"
+              >
+                Send
+              </button>
+              <button
+                onClick={handleCancelImage}
+                className="px-3 py-1.5 rounded-full glass-card text-xs font-medium btn-press"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {mode === "text" ? (
         <div className="flex items-center gap-1.5">
@@ -247,7 +262,7 @@ export default function ChatBox({ role }) {
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, MAX_TEXT_LENGTH))}
             onKeyDown={handleKeyDown}
-            placeholder="Type a Message..."
+            placeholder="Type a message..."
             className="glass-card px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/50 flex-1 min-w-0"
           />
           <button
@@ -310,11 +325,7 @@ export default function ChatBox({ role }) {
                   disabled={disabled}
                   className="rounded-xl overflow-hidden aspect-square glass-card btn-press disabled:opacity-40"
                 >
-                  <img
-                    src={gif.previewUrl}
-                    alt="GIF option"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={gif.previewUrl} alt="GIF option" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -327,11 +338,30 @@ export default function ChatBox({ role }) {
           {mode === "text" ? `${text.length}/${MAX_TEXT_LENGTH}` : ""}
         </span>
         {disabled && (
-          <span className="text-[11px] text-accent/70">
-            Wait {cooldownLeft} s before sending again
-          </span>
+          <span className="text-[11px] text-accent/70">Wait {cooldownLeft}s before sending again</span>
         )}
       </div>
+
+      {/* Lightbox — ขยายรูปเต็มจอ */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+          <img
+            src={lightboxImage}
+            alt="Expanded view"
+            className="max-w-full max-h-full rounded-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
