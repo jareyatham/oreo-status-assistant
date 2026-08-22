@@ -1,15 +1,5 @@
-import { ref, push, onValue, query, limitToLast } from "firebase/database";
-import { db } from "./firebase";
 import { ref, push, onValue, remove, query, limitToLast } from "firebase/database";
 import { db } from "./firebase";
-
-// ...โค้ดเดิมทั้งหมด (recordView, subscribeViewLogs)
-
-/** ล้าง log การเข้าชมทั้งหมด — เรียกตอนเจ้าของอัปเดตสถานะใหม่ */
-export async function clearViewLogs() {
-  await remove(ref(db, "viewLogs"));
-}
-
 
 const VIEW_LOGS_PATH = "viewLogs";
 const KEEP_LAST = 50;
@@ -37,4 +27,9 @@ export function subscribeViewLogs(callback) {
     callback(list);
   });
   return unsubscribe;
+}
+
+/** ล้าง log การเข้าชมทั้งหมด — เรียกตอนเจ้าของอัปเดตสถานะใหม่ */
+export async function clearViewLogs() {
+  await remove(ref(db, VIEW_LOGS_PATH));
 }
