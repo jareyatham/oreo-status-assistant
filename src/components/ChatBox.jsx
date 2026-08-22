@@ -61,8 +61,7 @@ export default function ChatBox({ role }) {
   const [gifResults, setGifResults] = useState([]);
   const [searchingGif, setSearchingGif] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
-  const [pendingImage, setPendingImage] = useState(null); // { preview: string } รอ confirm ก่อนส่ง
-  const [lightboxImage, setLightboxImage] = useState(null); // url รูปที่กำลังขยายดู
+  const [pendingMedia, setPendingMedia] = useState(null); // { type: "image"|"gif", content: string }  const [lightboxImage, setLightboxImage] = useState(null); // url รูปที่กำลังขยายดู
   const lastSentAtRef = useRef(0);
   const scrollRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -130,17 +129,11 @@ export default function ChatBox({ role }) {
     }
   }
 
-  async function handleSendGif(gif) {
-    if (!canSendNow()) return;
-    markSent();
+  function handleSelectGif(gif) {
+    setPendingMedia({ type: "gif", content: gif.fullUrl });
     setMode("text");
     setGifQuery("");
     setGifResults([]);
-    try {
-      await sendChatMessage("gif", gif.fullUrl, role);
-    } catch (err) {
-      console.error("ส่ง GIF ไม่สำเร็จ:", err);
-    }
   }
 
   // Step 1: เลือกไฟล์ → บีบอัด → เอาไปโชว์ preview รอ confirm (ยังไม่ส่ง)
@@ -161,7 +154,7 @@ export default function ChatBox({ role }) {
 
     try {
       const compressed = await compressImage(file);
-      setPendingImage(compressed);
+      setPendingMedia({ type: "image", content: compressed });
     } catch (err) {
       console.error("ประมวลผลรูปไม่สำเร็จ:", err);
       alert("Failed to process image, please try again");
@@ -171,20 +164,21 @@ export default function ChatBox({ role }) {
   }
 
   // Step 2: กดยืนยันส่งจริง
-  async function handleConfirmSendImage() {
-    if (!pendingImage || !canSendNow()) return;
+  // กดยืนยันส่งจริง — ใช้ได้ทั้งรูปที่อัปโหลดและ GIF ที่เลือก
+  async function handleConfirmSendMedia() {
+    if (!pendingMedia || !canSendNow()) return;
     markSent();
-    const toSend = pendingImage;
-    setPendingImage(null);
+    const toSend = pendingMedia;
+    setPendingMedia(null);
     try {
-      await sendChatMessage("image", toSend, role);
+      await sendChatMessage(toSend.type, toSend.content, role);
     } catch (err) {
-      console.error("ส่งรูปไม่สำเร็จ:", err);
+      console.error("ส่งไม่สำเร็จ:", err);
     }
   }
 
-  function handleCancelImage() {
-    setPendingImage(null);
+  function handleCancelMedia() {
+    setPendingMedia(null);
   }
 
   function handleKeyDown(e) {
@@ -251,25 +245,28 @@ export default function ChatBox({ role }) {
       </div>
 
       {/* Preview รูปที่เลือกไว้ รอกด confirm ก่อนส่งจริง */}
-      {pendingImage && (
+      {/* Preview รูป/GIF ที่เลือกไว้ รอกด confirm ก่อนส่งจริง */}
+      {pendingMedia && (
         <div className="glass-card p-2 flex items-center gap-3">
           <img
-            src={pendingImage}
+            src={pendingMedia.content}
             alt="Preview"
             className="w-16 h-16 rounded-xl object-cover"
           />
           <div className="flex-1 flex flex-col gap-1">
-            <p className="text-xs text-ink/60">Send this image?</p>
+            <p className="text-xs text-ink/60">
+              Send this {pendingMedia.type === "gif" ? "GIF" : "image"}?
+            </p>
             <div className="flex gap-2">
               <button
-                onClick={handleConfirmSendImage}
+                onClick={handleConfirmSendMedia}
                 disabled={disabled}
                 className="px-3 py-1.5 rounded-full bg-primary text-white text-xs font-medium btn-press disabled:opacity-40"
               >
                 Send
               </button>
               <button
-                onClick={handleCancelImage}
+                onClick={handleCancelMedia}
                 className="px-3 py-1.5 rounded-full glass-card text-xs font-medium btn-press"
               >
                 Cancel
@@ -345,9 +342,8 @@ export default function ChatBox({ role }) {
                 <button
                   key={gif.id}
                   type="button"
-                  onClick={() => handleSendGif(gif)}
-                  disabled={disabled}
-                  className="rounded-xl overflow-hidden glass-card btn-press disabled:opacity-40 bg-black/5 flex items-center justify-center h-24 w-full"
+                  onClick={() => handleSelectGif(gif)}
+                  className="rounded-xl overflow-hidden glass-card btn-press bg-black/5 flex items-center justify-center h-24 w-full"
                 >
                   <img
                     src={gif.previewUrl}
