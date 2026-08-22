@@ -24,7 +24,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="absolute top-4 right-4 z-40 w-10 h-10 rounded-full glass-card flex items-center justify-center btn-press"
+      className="absolute top-4 left-4 z-40 w-10 h-10 rounded-full glass-card flex items-center justify-center btn-press"
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
       {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
