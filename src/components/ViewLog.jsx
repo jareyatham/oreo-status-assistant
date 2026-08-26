@@ -7,7 +7,11 @@ function formatViewTime(isoString) {
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
 
-  const time = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  const time = date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
   if (isToday) return `Today, ${time}`;
 
   const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
