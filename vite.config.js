@@ -2,25 +2,27 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
+const isController = process.env.VITE_APP_MODE === "controller";
+const CONTROLLER_PATH = "/control-s1sqlfctl212748"; // ใส่ path ลับจริงของคุณ
+
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: "autoUpdate",
-
-      // ❌ เอา mascot ออกจาก precache
-      includeAssets: ["favicon.ico"],
-
+      includeAssets: ["favicon.svg", "mascot/*"],
       manifest: {
-        name: "Oreo Status Assistant",
-        short_name: "Oreo",
-        description: "เช็คว่าเจ้าของว่างไหม 🐶",
-        theme_color: "#0B0F14",          // 👉 เปลี่ยนเป็น dark theme
-        background_color: "#0B0F14",
+        name: isController ? "Oreo Controller" : "Oreo Status Assistant",
+        short_name: isController ? "Oreo Ctrl" : "Oreo",
+        description: isController
+          ? "Control panel for Oreo Status Assistant"
+          : "เช็คว่าเจ้าของว่างไหม ",
+        theme_color: "#F4FAF3",
+        background_color: "#F4FAF3",
         display: "standalone",
         orientation: "portrait",
-        start_url: "/",
-
+        start_url: isController ? CONTROLLER_PATH : "/",
+        scope: isController ? CONTROLLER_PATH : "/",
         icons: [
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
@@ -32,23 +34,9 @@ export default defineConfig({
           },
         ],
       },
-
       workbox: {
-        // ❌ เอา gif ออกจาก precache
-        globPatterns: ["**/*.{js,css,html,json,png,svg}"],
-
+        globPatterns: ["**/*.{js,css,html,gif,json,png,svg}"],
         runtimeCaching: [
-          {
-            urlPattern: /\/mascot\/.*\.gif$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "mascot-gifs",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 วัน
-              },
-            },
-          },
           {
             urlPattern: /firebasedatabase\.app/,
             handler: "NetworkOnly",
