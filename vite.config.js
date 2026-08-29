@@ -35,11 +35,22 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,gif,json,png,svg}"],
+        globPatterns: ["**/*.{js,css,html,json,png,svg}"], // เอา gif ออกจาก precache list
+        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, // เผื่อไว้ 30MB กันเหนียว
         runtimeCaching: [
           {
             urlPattern: /firebasedatabase\.app/,
             handler: "NetworkOnly",
+          },
+          {
+            urlPattern: /\/mascot\/.*\.gif$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "mascot-gifs",
+              expiration: {
+                maxEntries: 10,
+              },
+            },
           },
         ],
       },
