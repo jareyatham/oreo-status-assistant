@@ -39,6 +39,13 @@
       "$logId": {
         ".validate": "newData.hasChildren(['viewedAt']) && newData.child('viewedAt').isString()"
       }
+    },
+    "pushTokens": {
+      "$role": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['token','updatedAt']) && newData.child('token').isString() && newData.child('updatedAt').isString()"
+      }
     }
   }
 }

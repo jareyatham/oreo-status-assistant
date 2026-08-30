@@ -9,6 +9,8 @@ import { Clock, PawPrint } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
 import { APP_VERSION } from "../constants/version";
 import { recordView } from "../lib/viewCounter";
+import NotificationPermission from "../components/NotificationPermission";
+
 
 function formatUpdatedAt(isoString) {
   if (!isoString) return "";
@@ -49,6 +51,8 @@ export default function ViewerPage() {
     <div className="min-h-dvh bg-app-gradient flex flex-col items-center justify-center px-6 py-10">
       <div className="relative w-full max-w-sm">
         <ThemeToggle />
+        
+        <NotificationPermission role="viewer" />
 
         <div
           key={data.status}

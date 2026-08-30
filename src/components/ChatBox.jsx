@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { subscribeChatMessages, sendChatMessage } from "../lib/chatStore";
+import { subscribeChatMessages, sendChatMessageWithNotification } from "../lib/chatStore";
 import { searchGifs } from "../lib/giphy";
 import { MessageCircle, Image as ImageIcon, Film, Send, X } from "lucide-react";
 
@@ -118,7 +118,7 @@ export default function ChatBox({ role }) {
       const toSend = pendingMedia;
       setPendingMedia(null);
       try {
-        await sendChatMessage(toSend.type, toSend.content, role);
+        await sendChatMessageWithNotification(toSend.type, toSend.content, role);
       } catch (err) {
         console.error("ส่งไม่สำเร็จ:", err);
       }
@@ -130,7 +130,7 @@ export default function ChatBox({ role }) {
     markSent();
     setText("");
     try {
-      await sendChatMessage("text", trimmed, role);
+      await sendChatMessageWithNotification("text", trimmed, role);
     } catch (err) {
       console.error("ส่งข้อความไม่สำเร็จ:", err);
     }

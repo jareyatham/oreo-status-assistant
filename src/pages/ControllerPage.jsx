@@ -15,7 +15,7 @@
   import { APP_VERSION } from "../constants/version";
   import ViewLog from "../components/ViewLog";
   import { clearViewLogs } from "../lib/viewCounter";
-
+  import NotificationPermission from "../components/NotificationPermission";
 
 
 
@@ -29,6 +29,8 @@
   const COMPRESSED_MAX_DIMENSION = 1280;
   const COMPRESSED_QUALITY = 0.75;
 
+  <NotificationPermission role="owner" />
+  
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const img = new Image();

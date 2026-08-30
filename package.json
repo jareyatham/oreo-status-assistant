@@ -9,7 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "firebase": "^10.13.0",
+    "firebase": "^10.14.1",
+    "firebase-admin": "^14.3.0",
     "lottie-react": "^2.4.0",
     "lucide-react": "^1.33.0",
     "react": "^18.3.1",
