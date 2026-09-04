@@ -8,15 +8,27 @@ import { subscribeToPush, getNotificationPermission } from "../lib/pushNotificat
 export default function NotificationPermission({ role }) {
   const [status, setStatus] = useState("default");
   const [loading, setLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
-    setStatus(getNotificationPermission());
-  }, []);
+    const permission = getNotificationPermission();
+    setStatus(permission);
+
+    // ถ้า permission เคย granted ไว้แล้ว ลองสมัครรับ token ใหม่แบบเงียบๆ
+    // (ไม่ขึ้น popup ซ้ำ เพราะ browser จะไม่ถาม permission อีกรอบถ้า granted แล้ว)
+    // เพื่อให้ Service Worker + token กลับมาใช้งานได้จริง แม้เคยโดนล้าง cache ไปก่อนหน้า
+    if (permission === "granted") {
+      subscribeToPush(role).then((token) => {
+        setSubscribed(!!token);
+      });
+    }
+  }, [role]);
 
   async function handleEnable() {
     setLoading(true);
     const token = await subscribeToPush(role);
     setStatus(getNotificationPermission());
+    setSubscribed(!!token);
     setLoading(false);
     if (!token) {
       alert("Couldn't enable notifications. Please check your browser settings.");
@@ -24,7 +36,8 @@ export default function NotificationPermission({ role }) {
   }
 
   if (status === "unsupported") return null;
-  if (status === "granted") {
+
+  if (status === "granted" && subscribed) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-accent/70">
         <Bell className="w-3.5 h-3.5" />
@@ -44,6 +57,8 @@ export default function NotificationPermission({ role }) {
         ? "Notifications blocked"
         : loading
         ? "Enabling..."
+        : status === "granted"
+        ? "Reconnecting..."
         : "Enable notifications"}
     </button>
   );

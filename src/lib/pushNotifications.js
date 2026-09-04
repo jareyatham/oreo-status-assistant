@@ -22,7 +22,29 @@ export async function subscribeToPush(role) {
   }
 
   try {
-    const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    const registration = await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js",
+    );
+
+    // รอให้ Service Worker ตัวนี้ active จริงๆ ก่อน (กัน race condition ตอนมี SW ตัวอื่นคุม scope เดียวกันอยู่ก่อน)
+    await new Promise((resolve) => {
+      if (registration.active) {
+        resolve();
+        return;
+      }
+      const worker = registration.installing || registration.waiting;
+      if (!worker) {
+        resolve();
+        return;
+      }
+      worker.addEventListener("statechange", function handler() {
+        if (worker.state === "activated") {
+          worker.removeEventListener("statechange", handler);
+          resolve();
+        }
+      });
+    });
+
     const messaging = getMessaging(app);
 
     const token = await getToken(messaging, {

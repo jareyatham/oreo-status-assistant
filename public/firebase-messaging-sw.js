@@ -1,3 +1,6 @@
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(clients.claim()));
+
 importScripts("https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js");
 
@@ -8,6 +11,7 @@ firebase.initializeApp({
   authDomain: "oreo-assistant.firebaseapp.com",
   databaseURL: "https://oreo-assistant-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "oreo-assistant",
+  messagingSenderId: "115483784294",
   appId: "1:115483784294:web:a97f1ef037a7901ef6e9a7",
 });
 
