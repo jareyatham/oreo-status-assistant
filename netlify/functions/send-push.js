@@ -10,19 +10,23 @@ if (!admin.apps.length) {
   });
 }
 
-export default async (req) => {
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+export const handler = async (event) => {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
   }
 
   try {
-    const { token, title, body, targetPath } = await req.json();
+    const { token, title, body, targetPath } = JSON.parse(event.body || "{}");
 
     if (!token || !title) {
-      return new Response(JSON.stringify({ error: "Missing token or title" }), {
-        status: 400,
+      return {
+        statusCode: 400,
         headers: { "Content-Type": "application/json" },
-      });
+        body: JSON.stringify({ error: "Missing token or title" }),
+      };
     }
 
     await admin.messaging().send({
@@ -38,19 +42,17 @@ export default async (req) => {
       },
     });
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
+    return {
+      statusCode: 200,
       headers: { "Content-Type": "application/json" },
-    });
+      body: JSON.stringify({ success: true }),
+    };
   } catch (err) {
     console.error("ส่ง push ไม่สำเร็จ:", err);
-    return new Response(JSON.stringify({ error: "Failed to send push" }), {
-      status: 500,
+    return {
+      statusCode: 500,
       headers: { "Content-Type": "application/json" },
-    });
+      body: JSON.stringify({ error: "Failed to send push" }),
+    };
   }
-};
-
-export const config = {
-  path: "/api/send-push",
 };
