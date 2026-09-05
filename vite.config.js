@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["favicon.svg", "mascot/*"],
       manifest: {
         name: isController ? "Oreo Controller" : "Oreo Status Assistant",

@@ -3,17 +3,14 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// PWA auto-update prompt (ทำงานเฉพาะตอน build production)
 if ("serviceWorker" in navigator) {
   import("virtual:pwa-register")
     .then(({ registerSW }) => {
       registerSW({
         onNeedRefresh() {
-          if (confirm("มีเวอร์ชันใหม่ของ Oreo Status พร้อมใช้งาน — รีเฟรชเลยไหม?")) {
-            window.location.reload();
-          }
+          // ไม่ทำอะไรอัตโนมัติ ปล่อยให้ผู้ใช้กด refresh เองตามปกติเมื่อสะดวก
+          console.log("มีเวอร์ชันใหม่พร้อมใช้งาน จะอัปเดตในครั้งถัดไปที่เปิดแอป");
         },
-        immediate: true,
       });
     })
     .catch(() => {
